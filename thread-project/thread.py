@@ -21,17 +21,18 @@ class buffer_item:
     # Receives a 'num' to Insert
     # Receives the 'name' of the thread
     def insert_item(self, num, name):
-        print("Thread %s waiting to insert an item..." % name)
+        print("%s waiting to insert an item..." % name)
 
         # Start of the critical section
         mutex.acquire()
         print("Starting insert_item...")
-        print("Thread %s has acquired the CS to insert an item..." % name)
+        print("%s has acquired the CS to insert an item..." % name)
         try:
             # Can't insert the element if the buffer is full
             if(self.max_length == len(self.buffer)):
                 print("That element can't be added at max elements...")
                 return -1
+
             # An element was inserted
             else:
                 self.buffer.append(num)
@@ -46,12 +47,12 @@ class buffer_item:
     # Receives a 'num' to remove
     # Receives the 'name' of the thread
     def remove_item(self, num, name):
-        print("Thread %s waiting to remove an item..." % name)
+        print("%s waiting to remove an item..." % name)
 
         # Start of Critical Section
         mutex.acquire()
         print("Starting remove_item...")
-        print("Thread %s has acquired the CS to remove an item..." % name)
+        print("%s has acquired the CS to remove an item..." % name)
         try:
             # Requested element is removed
             if (num in self.buffer):
@@ -65,6 +66,7 @@ class buffer_item:
         finally:
             print("The buffer is: %s" % self.buffer)
             mutex.release()
+
             # End of Critical Section
             print("Thread %s has released the CS...\n\n" % name)
 
@@ -78,6 +80,7 @@ def producer(buffer, name):
     while(1):
         # sleep for a random period of time
         time.sleep(random.randint(1, 10))
+
         # generate a random number, put in
         random_num = random.randint(1, 10)
         buffer.insert_item(random_num, name)
@@ -88,10 +91,12 @@ def producer(buffer, name):
 
 def consumer(buffer, name):
     print("Thread %s called the consumer function.\n" % name)
+
     # Keep looping to consume an element until the system stops
     while(1):
         # sleep for a random period of time
         time.sleep(random.randint(1, 10))
+
         # generate a random number, put in
         random_num = random.randint(1, 10)
         buffer.remove_item(random_num, name)
@@ -102,32 +107,35 @@ def main():
         print("Usage:\n python3 thread.py sleep-time producer-threads consumer-threads")
         sys.exit()
     print("Starting main...\n")
+
     # Initilize Buffer
     buffer = buffer_item(5)
 
     # Get command line arguments argv 1,2,3
     sleep_time = sys.argv[1]
+
     # Create producer thread(s)
     producer_threads = sys.argv[2]
     for i in range(int(producer_threads)):
-        thrd = threading.Thread(group=None, target=producer, name=i, args=(buffer, i))
+        thrd = threading.Thread(group=None, target=producer, name="Producer Thread %d" % i, args=(buffer, "Producer Thread %d" % i))
         # This stops the thread if the main thread stops
         thrd.daemon = True
-        print("Producer %s created." % thrd.getName())
+        print("%s created." % thrd.getName())
         thrd.start()
 
     # Create comsumer thread(s)
     consumer_threads = sys.argv[3]
     for i in range(int(consumer_threads)):
-        thrd = threading.Thread(group=None, target=consumer, name=i, args=(buffer, i))
+        thrd = threading.Thread(group=None, target=consumer, name="Consumer Thread %d" % i, args=(buffer, "Consumer Thread %d" % i))
         # This stops the thread if the main thread stops
         thrd.daemon = True
-        print("Consumer %s created." % thrd.getName())
+        print("%s created." % thrd.getName())
         thrd.start()
 
     # sleep
     print("Sleeping for %d seconds.\n" % int(sleep_time))
     time.sleep(int(sleep_time))
+
     # exit
     sys.exit()
 
