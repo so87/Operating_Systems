@@ -1,3 +1,14 @@
-print out players who score the highest points at their position
+You are a data analyst for a highly skilled and meticulous basketball coach.  You are in the charge of stealing away players from other teams!You are in charge of finding the best players per position.  Read a list of player stats, and print out the player with the highest average points per position.
 
-there are 4 positions
+There are four positions: "center" "forward"  "point guard" "shooting guard"
+
+You are given a list as follows:
+player name, average points, current offer $
+
+ex.
+Michael Jordan,27.8,forward,7000000
+
+Your program should read in a text file of the above format, and output the players to the screen and also output the total amount of money your coach will have to pay to get all of these players!
+
+FIN
+----------------------------

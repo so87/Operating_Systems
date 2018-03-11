@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-def read_salary(line):
+def read_points(line):
 	value = line.split(",")[1]
 	return value
 
@@ -16,8 +16,8 @@ def find_max(position):
 		max_points = 0	
 		max_line = ""
 		for line in f:
-			if (read_salary(line) > max_points) and (correct_position(line, position)):
-				max_points = read_salary(line)
+			if (read_points(line) > max_points) and (correct_position(line, position)):
+				max_points = read_points(line)
 				max_line = line
 		return max_line
 
@@ -28,9 +28,11 @@ def main():
 
 	for position in positions:
 		player_lineup.append(find_max(position))
-
-	for player in player_lineup:	
+	total = 0 
+	for player in player_lineup:
+		total = total + int(player.split(",")[3])
 		print(player)
+	print "total money needed to buy players: %d" % total
 
 if __name__ == "__main__":
 	main()
