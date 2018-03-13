@@ -39,63 +39,89 @@ class process_obj:
 	def get_state(self):
 		return self.state
 
-def print_scheduler_info(p_list):
-	# find the current running process
-	print ("Ready Queue: ")
-	print ("Wait Queue: \n")
-	run_p.tick()
+class PCB:
+	def __init__(self, q):
+		self.ready_list = []
+		self.wait_list = []
+		self.running_p = process_obj(0, 0)
+		self.master_p = None
+		self.q = q
 
-#def tick(self):
-#	self.q = int(self.q) - 1
-#	self.time_left = int(self.time_left) - 1
-#	if self.time_left == 0:
-#		self.state = "done"
+	def update(self):
+		print("Beginning one turn cycle")	
+		# 1 Do the given command
+		# 1 make sure and put that process where they go
+		
+		# 2 check to see running process
+			# if not move first ready to running
+	
+		# 3 tick - only dec if not PID 0
 
-def create_proc(PID, time):
-	print("Creating process")
-	p = process_obj(PID, time)
-	return p
+		# 4 see if current running process needs to be terminated
 
-def destroy_proc(PID):
-	print("Destorying process")
+			# 4a if it does need to be terminated, check if master
+			# 4b if it was master delete all other processes
 
-def timer_interrupt():
-	print("Interrupting process")
+		# 5 decrement q
+		# 5a if q==0, put process on ready queue, and move first ready queue process in 			running state
 
-def wait_event(EID):
-	print("Wait event called")
+		# print out the PCB info 	
+	
+	def _tick():
+		print("Ticking")
+		
+		# Decrement q by 1
+	
+	def create_proc(self, PID, time):
+		print("Creating process")
+		p = process_obj(PID, time)
+		self.update()
 
-def done_waiting(EID):
-	print("Done waiting called")
+	def destroy_proc(self,PID):
+		print("Destorying process")
+		self.update()
 
-def exit_program():
-	print("Terminating program")
+	def timer_interrupt(self):
+		print("Interrupting process")
+		self.update()
 
+	def wait_event(self,EID):
+		print("Wait event called")
+		self.update()
+
+	def done_waiting(self, EID):
+		print("Done waiting called")
+		self.update()
+
+	def exit_program(self):
+		print("Terminating program")
+		self.update()
+
+	def print_scheduler_info(self):
+		# find the current running process
+		print ("Ready Queue: ")
+		print ("Wait Queue: \n")
 
 def main():
-	options = {'C': create_proc,
-			'D': destroy_proc,
-			'I': timer_interrupt,
-			'W': wait_event,
-			'E': done_waiting,
-			'X': exit_program}
-	p_list = []
-	q = sys.argv[2]
-
+	pcb = PCB(sys.argv[2])
+	options = {'C': pcb.create_proc,
+            'D': pcb.destroy_proc,
+            'I': pcb.timer_interrupt,
+            'W': pcb.wait_event,
+            'E': pcb.done_waiting,
+            'X': pcb.exit_program}
+	
 	# Read line from file for command
 	with open(sys.argv[1]) as f:
 		for line in f:
-			time.sleep(1)
+			#time.sleep(1)
 			command = line[0]
 			if command == 'C':
-				p_list.append(options[command](line[2], line[4]))
+				options[command](line[2], line[4])
 			elif command == 'W' or command == 'E' or command == 'D':
 				options[command](line[2])
 			else:
 				options[command]()
-
-	# Print out info
-	print_scheduler_info(p_list)
 
 	# When completely done make sure all processes are closed
 
