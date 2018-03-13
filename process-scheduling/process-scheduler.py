@@ -18,14 +18,22 @@ class process_obj:
 		self.state = "ready"
 		self.time_left = runtime
 
-	def change_runtime(self, runtime):
-		self.runtime = runtime
+	def tick(self):
+		self.time_left = int(self.time_left) - 1
+		if self.time_left == 0:
+			self.state = "terminated"
 
 	def change_state(self, state):
 		self.state = state
 
+	def change_wait(self, ID):
+		self.wait = ID
+
+	def get_wait(self):
+		return self.wait
+
 	def print_self(self):
-		return "PID %d %d" % (int(self.ID), int(self.runtime))
+		return "PID %d %d" % (int(self.ID), int(self.time_left))
 
 	def get_ID(self):
 		return self.ID
@@ -46,39 +54,83 @@ class PCB:
 		self.running_p = process_obj(0, 0)
 		self.master_p = None
 		self.q = q
+		self.q_left = q
 
 	def update(self):
-		print("Beginning one turn cycle")	
-		# 1 Do the given command
-		# 1 make sure and put that process where they go
+		# Move next process into running if running is PID 0 or waiting and ready is not empty
+		if (self.running_p.get_ID() == 0 or self.running_p.get_state() == "waiting") and len(self.ready_list):
+			self.running_p = self.ready_list[0]
+			self.ready_list.remove(self.running_p)
+			self.running_p.change_state("running")
 		
-		# 2 check to see running process
-			# if not move first ready to running
-	
-		# 3 tick - only dec if not PID 0
+		# Move PID 0 into running if current is waiting and empty ready queue
+		elif self.running_p.get_state() == "waiting" and not len(self.ready_list):
+			self.running_p = process_obj(0,0) 
 
-		# 4 see if current running process needs to be terminated
-
-			# 4a if it does need to be terminated, check if master
-			# 4b if it was master delete all other processes
-
-		# 5 decrement q
-		# 5a if q==0, put process on ready queue, and move first ready queue process in 			running state
-
-		# print out the PCB info 	
-	
-	def _tick():
-		print("Ticking")
+		# tick - only dec if not PID 0
+		if self.running_p.get_ID() != 0:  
+			self._tick()
 		
+		# Check if current running process needs to be terminated
+		if self.running_p.get_state() == "terminated":
+			# if master delete everything
+			print("handle what to do if processes gets done")
+			# otherwise just move next thing in
+	
+
+		# Move next process into running if end of q
+		if self.q_left == 0 and len(self.ready_list):
+			self.running_p.change_state("ready")
+			self.ready_list.append(self.running_p)
+			print ("%s placed on the ready queue" % self.running_p.print_self())		
+			self.running_p = self.ready_list[0]
+			self.ready_list.remove(self.running_p)
+			self.running_p.change_state("running")
+	
+		# reset q if it is zero	
+		if self.q_left == 0:
+			self.q_left = self.q
+
+		# print out the PCB info 
+		self.print_scheduler_info()	
+	
+	def _tick(self):
 		# Decrement q by 1
+		self.q_left = int(self.q_left) - 1
+		self.running_p.tick()
 	
 	def create_proc(self, PID, time):
 		print("Creating process")
 		p = process_obj(PID, time)
+		# check to see if this is the master process
+		if len(self.ready_list) < 1 and len(self.wait_list) < 1:
+			master_ID = p.get_ID() 
+		self.ready_list.append(p)
+		print("%s placed on Ready Queue" % p.print_self())
 		self.update()
 
 	def destroy_proc(self,PID):
 		print("Destorying process")
+		
+		# if that PID is the master destory everything
+		if PID == self.master_p:
+			for proc in self.ready_list:
+				self.ready_list.remove(proc)
+				print ("%s terminated" % proc.print_self()) 
+			for proc in self.wait_list:
+				self.wait_list.remove(proc)
+				print ("%s terminated" % proc.print_self())
+		# check to see if that PID exsists
+		else:
+			for proc in self.ready_list:
+				if proc.get_ID() == PID:
+					self.ready_list.remove(proc)
+					print ("%s terminated" % proc.print_self())
+			for proc in self.wait_list:
+				if proc.get_ID() == PID:
+					self.wait_list.remove(proc)
+					print ("%s terminated" % proc.print_self())
+		
 		self.update()
 
 	def timer_interrupt(self):
@@ -87,20 +139,51 @@ class PCB:
 
 	def wait_event(self,EID):
 		print("Wait event called")
+		if self.running_p.get_ID() == "0":
+			print("Cannot execute wait on PID 0")	
+		elif EID == "0":
+			print("Cannot execute wait of 0 time")
+		else:
+			self.running_p.change_state("waiting")
+			self.running_p.change_wait(EID)
+			self.wait_list.append(self.running_p)
+			print("%s placed on the Wait Queue" % self.running_p.print_self())
+	
 		self.update()
 
 	def done_waiting(self, EID):
-		print("Done waiting called")
+		# see if any waiting procs have that EID
+		for proc in self.wait_list:
+			if proc.get_wait() == EID:
+				proc.change_state("ready")
+				self.ready_list.append(proc)
+				self.wait_list.remove(proc)
+				print("%s placed on the Ready Queue" % proc.print_self())
 		self.update()
 
 	def exit_program(self):
 		print("Terminating program")
-		self.update()
-
+	
+	def return_str_ready_list(self):
+		string = ""
+		for item in self.ready_list:
+			string += item.print_self() + " "
+		return string
+	
+	def return_str_wait_list(self):
+		string = ""
+		for item in self.wait_list:
+			string += item.print_self() + " "
+		return string
+	
 	def print_scheduler_info(self):
-		# find the current running process
-		print ("Ready Queue: ")
-		print ("Wait Queue: \n")
+		if self.running_p.get_ID() == 0:
+			print("PID 0 running")
+		else:
+			print ("%s running with %d left" % (self.running_p.print_self(), int(self.q_left)))
+		print ("Ready Queue: %s" % self.return_str_ready_list())
+		print ("Wait Queue: %s" % self.return_str_wait_list())
+		print ("")
 
 def main():
 	pcb = PCB(sys.argv[2])
