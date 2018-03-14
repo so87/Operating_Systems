@@ -67,6 +67,9 @@ class PCB:
 		elif self.running_p.get_state() == "waiting" and not len(self.ready_list):
 			self.running_p = process_obj(0,0) 
 
+		# print out the PCB info 
+		self.print_scheduler_info()
+
 		# tick - only dec if not PID 0
 		if self.running_p.get_ID() != 0:  
 			self._tick()
@@ -74,9 +77,19 @@ class PCB:
 		# Check if current running process needs to be terminated
 		if self.running_p.get_state() == "terminated":
 			# if master delete everything
-			print("handle what to do if processes gets done")
+			if self.running_p.get_ID() == self.master_p:
+				for proc in self.ready_list:
+					self.ready_list.remove(proc)
+					print ("%s terminated" % proc.print_self())
+				for proc in self.wait_list:
+					self.wait_list.remove(proc)
+					print ("%s terminated" % proc.print_self())
 			# otherwise just move next thing in
-	
+			elif len(self.ready_list):
+				self.running_p = self.ready_list[0]
+				self.ready_list.remove(self.running_p)
+			else:
+				self.running_p = process_obj(0,0)
 
 		# Move next process into running if end of q
 		if self.q_left == 0 and len(self.ready_list):
@@ -91,16 +104,12 @@ class PCB:
 		if self.q_left == 0:
 			self.q_left = self.q
 
-		# print out the PCB info 
-		self.print_scheduler_info()	
-	
 	def _tick(self):
 		# Decrement q by 1
 		self.q_left = int(self.q_left) - 1
 		self.running_p.tick()
 	
 	def create_proc(self, PID, time):
-		print("Creating process")
 		p = process_obj(PID, time)
 		# check to see if this is the master process
 		if len(self.ready_list) < 1 and len(self.wait_list) < 1:
@@ -110,8 +119,6 @@ class PCB:
 		self.update()
 
 	def destroy_proc(self,PID):
-		print("Destorying process")
-		
 		# if that PID is the master destory everything
 		if PID == self.master_p:
 			for proc in self.ready_list:
@@ -134,11 +141,9 @@ class PCB:
 		self.update()
 
 	def timer_interrupt(self):
-		print("Interrupting process")
 		self.update()
 
 	def wait_event(self,EID):
-		print("Wait event called")
 		if self.running_p.get_ID() == "0":
 			print("Cannot execute wait on PID 0")	
 		elif EID == "0":
@@ -162,7 +167,8 @@ class PCB:
 		self.update()
 
 	def exit_program(self):
-		print("Terminating program")
+		print("Current state of simulation:")
+		self.print_scheduler_info()
 	
 	def return_str_ready_list(self):
 		string = ""
@@ -173,7 +179,7 @@ class PCB:
 	def return_str_wait_list(self):
 		string = ""
 		for item in self.wait_list:
-			string += item.print_self() + " "
+			string += item.print_self() + " " + item.get_wait() + " "
 		return string
 	
 	def print_scheduler_info(self):
@@ -193,11 +199,13 @@ def main():
             'W': pcb.wait_event,
             'E': pcb.done_waiting,
             'X': pcb.exit_program}
-	
+	print("Simon Owens Process Management Class")
+	print("------------------------------------")	
+	pcb.print_scheduler_info()
 	# Read line from file for command
 	with open(sys.argv[1]) as f:
 		for line in f:
-			#time.sleep(1)
+			print("%s" % line)
 			command = line[0]
 			if command == 'C':
 				options[command](line[2], line[4])
