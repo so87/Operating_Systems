@@ -208,6 +208,7 @@ def main():
 	sys.stdout = open(sys.argv[3], 'w')
 	print("Simon Owens and Kunal Mukherjee Process Management Class")
 	print("------------------------------------")	
+	print("Time quantum: q= " % argv[2])	
 	pcb.print_scheduler_info()
 	
 	# Read line from file for command
