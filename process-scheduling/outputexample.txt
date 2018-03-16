@@ -1,4 +1,4 @@
-Simon Owens Process Management Class
+Simon Owens and Kunal Mukherjee Process Management Class
 ------------------------------------
 PID 0 running
 Ready Queue: 

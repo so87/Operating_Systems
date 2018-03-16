@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Simon Owens
+# Simon Owens and Kunal Mukherjee
 # Operating Systems
 # Dr. Hwang
 # Process Scheduling project
@@ -206,7 +206,7 @@ def main():
             'X': pcb.exit_program}
 	
 	sys.stdout = open(sys.argv[3], 'w')
-	print("Simon Owens Process Management Class")
+	print("Simon Owens and Kunal Mukherjee Process Management Class")
 	print("------------------------------------")	
 	pcb.print_scheduler_info()
 	
