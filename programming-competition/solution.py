@@ -23,7 +23,7 @@ def find_max(position):
 
 def main():
 	max_size = 10
-	positions = ['center', 'forward', 'shooting guard', 'point guard']
+	positions = ['center', 'forward', 'shooting_guard', 'point_guard']
 	player_lineup = []
 
 	for position in positions:
